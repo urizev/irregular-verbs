@@ -1,0 +1,13 @@
+name = "irregular-verbs-cloud-sync"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# KV Namespace Binding
+# Para crear el namespace en producción:
+# wrangler kv:namespace create SYNC_KV
+# wrangler kv:namespace create SYNC_KV --preview
+
+[[kv_namespaces]]
+binding = "SYNC_KV"
+id = "IRREGULAR_VERBS_SYNC_KV_ID"
+preview_id = "IRREGULAR_VERBS_SYNC_KV_PREVIEW_ID"

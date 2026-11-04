@@ -38,6 +38,7 @@ graph TD
 
     subgraph Infrastructure ["Capa de Infraestructura y Adaptadores"]
         StorageAdapter["LocalStorageAdapter (schemaVersion, migrations, backup)"]
+        CloudSyncService["CloudSyncService (Cloudflare Workers + KV, Web Crypto)"]
         AudioService["AudioService (Web Audio API sound synthesis / mute)"]
         SpeechService["SpeechService (Web Speech API - Roadmap)"]
     end
@@ -45,6 +46,7 @@ graph TD
     Presentation --> Hooks
     Hooks --> Core
     Hooks --> Infrastructure
+    CloudSyncService -. "KV / REST" .-> CloudflareKV["Cloudflare Workers + Workers KV"]
     Core -. "Sin dependencias de DOM ni React" .- Core
 ```
 
@@ -63,6 +65,11 @@ graph TD
   - Verifica la versión del esquema (`schemaVersion: 1`).
   - Ejecuta migraciones automáticas o restablecimiento seguro si los datos están desactualizados o corruptos.
   - Funciones puras para serialización / deserialización de backups JSON con validación de tipo y schema.
+- `services/cloudSyncCrypto.ts`:
+  - Normalización de nombres de usuario (`NFKC`, trim, lowercase, colapso de espacios).
+  - Derivación determinista e irreversible de identificadores de repositorio remoto usando Web Crypto SHA-256 con prefijo de longitud para evitar colisiones y filtración de contraseñas.
+- `services/cloudSyncService.ts`:
+  - Cliente REST desacoplado para consultar (`GET` / `HEAD`) y subir (`PUT`) el documento único JSON a Cloudflare Workers con Workers KV.
 - `services/audioService.ts`:
   - Generador de efectos de sonido sintetizados mediante Web Audio API (o audio tags ligeros) para acierto, fallo, clic y victoria.
   - Respeta el ajuste global de silencio (`soundEnabled`).

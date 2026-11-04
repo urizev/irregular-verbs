@@ -1,22 +1,27 @@
 import React, { useState, useRef } from 'react';
-import { AppSettings } from '../core/types';
+import { AppSettings, AppStorageState } from '../core/types';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
+import { CloudSyncManager } from '../components/cloud/CloudSyncManager';
 
 interface SettingsViewProps {
+  currentState: AppStorageState;
   settings: AppSettings;
   onUpdateSettings: (newSettings: Partial<AppSettings>) => void;
   onExportBackup: () => string;
   onImportBackup: (jsonString: string) => void;
+  onRestoreState: (state: AppStorageState) => void;
   onResetProgress: () => void;
   onBack: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
+  currentState,
   settings,
   onUpdateSettings,
   onExportBackup,
   onImportBackup,
+  onRestoreState,
   onResetProgress,
   onBack,
 }) => {
@@ -159,6 +164,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Sincronización en la Nube */}
+        <CloudSyncManager
+          currentState={currentState}
+          onRestoreState={onRestoreState}
+        />
 
         {/* Copias de Seguridad y Datos */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-indigo-100 space-y-4">

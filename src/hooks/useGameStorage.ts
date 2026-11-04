@@ -7,6 +7,7 @@ import {
 import {
   loadStorageState,
   saveStorageState,
+  sanitizeStorageState,
   exportStateToJson,
   importStateFromJson,
   resetStorageState,
@@ -156,6 +157,14 @@ export function useGameStorage() {
     [updateStateAndPersist]
   );
 
+  const restoreFullState = useCallback(
+    (newState: AppStorageState) => {
+      const sanitized = sanitizeStorageState(newState);
+      updateStateAndPersist(sanitized);
+    },
+    [updateStateAndPersist]
+  );
+
   const resetAllProgress = useCallback(() => {
     const fresh = resetStorageState();
     setState(fresh);
@@ -171,6 +180,7 @@ export function useGameStorage() {
     recordChallengeDefeat,
     exportBackup,
     importBackup,
+    restoreFullState,
     resetAllProgress,
   };
 }

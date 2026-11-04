@@ -66,17 +66,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="flex items-center gap-2">
             <Mascot mood="happy" size="sm" className="w-10 h-10" />
             <div>
-              <h1 className="font-fun font-bold text-lg md:text-xl text-indigo-900 leading-tight">
+              <h1 className="font-fun font-bold text-xl md:text-2xl text-indigo-900 leading-tight">
                 Verbos Irregulares
               </h1>
-              <p className="text-xs text-indigo-600 font-medium">100 Verbos en Inglés</p>
+              <p className="text-sm text-indigo-600 font-semibold">100 Verbos en Inglés</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200">
-              <span className="text-amber-500 font-bold text-sm">★</span>
-              <span className="font-fun font-bold text-xs text-amber-800">{totalStars}</span>
+            <div className="flex items-center gap-1.5 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
+              <span className="text-amber-500 font-bold text-base">★</span>
+              <span className="font-fun font-bold text-sm text-amber-800">{totalStars}</span>
             </div>
 
             <Button
@@ -113,10 +113,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* Camino de niveles */}
       <main className="max-w-xl mx-auto px-4 pt-6 pb-12">
         <div className="text-center mb-8">
-          <span className="inline-block bg-indigo-100 text-indigo-700 text-xs uppercase tracking-wider font-bold px-3 py-1 rounded-full mb-2">
+          <span className="inline-block bg-indigo-100 text-indigo-700 text-sm uppercase tracking-wider font-bold px-3.5 py-1 rounded-full mb-2">
             Camino de Aventura
           </span>
-          <h2 className="text-2xl md:text-3xl font-fun font-extrabold text-slate-800">
+          <h2 className="text-3xl md:text-4xl font-fun font-extrabold text-slate-800">
             ¡Elige tu Desafío!
           </h2>
         </div>
@@ -151,7 +151,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   <div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`font-fun font-extrabold text-sm px-2.5 py-0.5 rounded-full ${
+                        className={`font-fun font-extrabold text-base px-3 py-0.5 rounded-full ${
                           isCurrent
                             ? 'bg-indigo-600 text-white'
                             : isUnlocked
@@ -161,11 +161,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       >
                         Nivel {lvlNum}
                       </span>
-                      <span className="text-xs text-slate-500 font-bold">
+                      <span className="text-sm text-slate-600 font-bold">
                         Verbos {levelVerbsStart}-{levelVerbsEnd}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-600 font-medium mt-1 truncate max-w-xs">
+                    <p className="text-sm text-slate-600 font-medium mt-1.5 truncate max-w-sm">
                       {sampleVerbs}
                     </p>
                   </div>
@@ -175,7 +175,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       🔒
                     </span>
                   ) : isCurrent ? (
-                    <span className="text-xs bg-indigo-100 text-indigo-700 font-bold px-2 py-1 rounded-full animate-pulse">
+                    <span className="text-sm bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-full animate-pulse">
                       ¡Nivel Actual!
                     </span>
                   ) : (
@@ -221,10 +221,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             : 'bg-indigo-50 hover:bg-indigo-100 border-2 border-indigo-400 text-indigo-900 active:scale-95 shadow-sm'
                         }`}
                       >
-                        <span className="font-fun font-bold text-xs">
+                        <span className="font-fun font-bold text-sm sm:text-base leading-tight">
                           {challengeNames[chIdx]}
                         </span>
-                        <span className="text-[10px] text-slate-500 font-medium my-1">
+                        <span className="text-xs text-slate-500 font-medium my-1">
                           {errorLimits[chIdx]}
                         </span>
 
@@ -232,9 +232,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                           {isCompleted ? (
                             <StarRating stars={stars} size="sm" />
                           ) : isNodeUnlocked ? (
-                            <span className="text-xs font-bold text-indigo-600">Jugar ➔</span>
+                            <span className="text-sm font-bold text-indigo-600">Jugar ➔</span>
                           ) : (
-                            <span className="text-xs">🔒</span>
+                            <span className="text-sm">🔒</span>
                           )}
                         </div>
                       </button>
@@ -251,8 +251,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <footer className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-t border-indigo-100 p-3 shadow-lg">
         <div className="max-w-xl mx-auto flex items-center justify-between gap-4">
           <div className="flex-1">
-            <p className="text-xs font-bold text-slate-500">Siguiente objetivo:</p>
-            <p className="font-fun font-extrabold text-sm md:text-base text-indigo-900">
+            <p className="text-sm font-bold text-slate-500">Siguiente objetivo:</p>
+            <p className="font-fun font-extrabold text-base md:text-lg text-indigo-900">
               Nivel {nextTarget.level} • Desafío {nextTarget.challengeIndex === 3 ? 'Final' : nextTarget.challengeIndex + 1}
             </p>
           </div>

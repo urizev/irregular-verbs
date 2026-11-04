@@ -17,7 +17,7 @@ Desarrollada **100% en el cliente (Zero-Backend)**, offline-first como **Progres
   - `|`: Permite escribir **al menos una** de las variantes válidas (ej. `learned` o `learnt` para `learnt|learned`).
   - Soporte de separadores flexibles (`,`, `;`, `/`, `.`, espacio) y descarte de "to " inicial.
 - **📊 Estadísticas Detalladas:** Racha de días consecutivos 🔥, calendario/heatmap de constancia, ranking de verbos más fallados y lista de verbos dominados con síntesis de voz.
-- **💾 Persistencia y Backup:** Guardado en `localStorage` con versionado de esquema (`schemaVersion: 1`), exportación/importación en formato JSON y reinicio protegido.
+- **💾 Persistencia, Backup y Sincronización en la Nube:** Guardado local en `localStorage` con versionado de esquema (`schemaVersion: 1`), exportación/importación en formato JSON y sincronización manual en la nube (Cloudflare Workers + Workers KV) mediante identificación con Usuario y PIN determinista sin contraseñas en texto plano.
 - **📱 PWA Offline y Accesibilidad:** Instalable en móvil y escritorio, navegación ágil con tecla `Enter` entre campos y respeto de `prefers-reduced-motion`.
 
 ---

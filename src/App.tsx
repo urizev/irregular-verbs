@@ -22,6 +22,7 @@ export function App() {
     recordChallengeDefeat,
     exportBackup,
     importBackup,
+    restoreFullState,
     resetAllProgress,
   } = useGameStorage();
 
@@ -127,10 +128,12 @@ export function App() {
 
       {currentView === 'settings' && (
         <SettingsView
+          currentState={state}
           settings={state.settings}
           onUpdateSettings={updateSettings}
           onExportBackup={exportBackup}
           onImportBackup={importBackup}
+          onRestoreState={restoreFullState}
           onResetProgress={resetAllProgress}
           onBack={handleBackToMap}
         />
