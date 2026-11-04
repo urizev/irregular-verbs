@@ -27,16 +27,16 @@ gantt
     Pulido Final & QA                :e2, after e1, 2d
 ```
 
-### Fase 1: Dataset y Core de Dominio Puro
+### [✓] Fase 1: Dataset y Core de Dominio Puro
 - **Objetivo:** Construir la base de datos de 100 verbos y toda la lógica de negocio sin dependencias de UI ni navegador.
 - **Entregables:**
-  - `src/data/verbs.json`: Lista completa de exactamente 100 verbos irregulares comunes ordenados de menor a mayor dificultad, con campos `spanish`, `present`, `past` y `participle`, utilizando operadores `&` y `|`.
-  - `src/core/parser/verbParser.ts`: Validador estático del JSON que comprueba formatos y prohíbe la mezcla de `&` y `|` en un mismo campo.
-  - `src/core/validator/answerValidator.ts`: Normalizador de respuestas (trim, minúsculas, descarte de "to ", tolerancia a separadores `,`, `;`, `/`, `.`, espacio; descarte de "and"/"y").
-  - `src/core/challenge/challengeEngine.ts`: Máquina de estados del desafío, gestión de cola de verbos, re-encolado ante fallos, límites de fallos (2, 1, 0, 0) y cálculo de estrellas.
-  - `src/core/challenge/reviewSelector.ts`: Selector ponderado de verbos de repaso histórico basado en fallos anteriores.
-  - `src/core/stats/statsCalculator.ts`: Funciones puras de cálculo de métricas agregadas y rachas.
-  - **Suite de Pruebas Unitarias:** 100% de cobertura en Vitest para todos los módulos de `src/core/`.
+  - [x] `src/data/verbs.json`: Lista completa de exactamente 100 verbos irregulares comunes ordenados de menor a mayor dificultad, con campos `spanish`, `present`, `past` y `participle`, utilizando operadores `&` y `|`.
+  - [x] `src/core/parser/verbParser.ts`: Validador estático del JSON que comprueba formatos y prohíbe la mezcla de `&` y `|` en un mismo campo.
+  - [x] `src/core/validator/answerValidator.ts`: Normalizador de respuestas (trim, minúsculas, descarte de "to ", tolerancia a separadores `,`, `;`, `/`, `.`, espacio; descarte de "and"/"y").
+  - [x] `src/core/challenge/challengeEngine.ts`: Máquina de estados del desafío, gestión de cola de verbos, re-encolado ante fallos, límites de fallos (2, 1, 0, 0) y cálculo de estrellas.
+  - [x] `src/core/challenge/reviewSelector.ts`: Selector ponderado de verbos de repaso histórico basado en fallos anteriores.
+  - [x] `src/core/stats/statsCalculator.ts`: Funciones puras de cálculo de métricas agregadas y rachas.
+  - [x] **Suite de Pruebas Unitarias:** 100% de cobertura en Vitest para todos los módulos de `src/core/`.
 
 ### Fase 2: Componentes UI y Ciclo de Juego
 - **Objetivo:** Implementar la interfaz gráfica interactiva en React y Tailwind CSS, conectándola con el Core.
