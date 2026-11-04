@@ -38,39 +38,39 @@ gantt
   - [x] `src/core/stats/statsCalculator.ts`: Funciones puras de cálculo de métricas agregadas y rachas.
   - [x] **Suite de Pruebas Unitarias:** 100% de cobertura en Vitest para todos los módulos de `src/core/`.
 
-### Fase 2: Componentes UI y Ciclo de Juego
+### [✓] Fase 2: Componentes UI y Ciclo de Juego
 - **Objetivo:** Implementar la interfaz gráfica interactiva en React y Tailwind CSS, conectándola con el Core.
 - **Entregables:**
-  - Configuración inicial de Vite con React y TypeScript.
-  - Sistema de diseño infantil: paleta de colores vibrantes, bordes redondeados y tipografía local embebida.
-  - `HomeView`: Mapa vertical de niveles con nodos desbloqueados/bloqueados/superados, estrellas obtenidas y botón flotante "¡Jugar!".
-  - `ChallengeView`: Formulario de pregunta de verbo con 3 inputs de texto, soporte de tecla `Enter` secuencial, vidas/corazones ❤️ y barra de progreso.
-  - Componente de feedback temporalizado ante error (3-4 segundos de solución visible con cuenta atrás animada y botón "Continuar").
-  - Pantallas de Victoria (cálculo de estrellas) y Derrota (mascota amigable con opción de reintentar desafío regenerado).
+  - [x] Configuración inicial de Vite con React y TypeScript.
+  - [x] Sistema de diseño infantil: paleta de colores vibrantes, bordes redondeados y tipografía local embebida.
+  - [x] `HomeView`: Mapa vertical de niveles con nodos desbloqueados/bloqueados/superados, estrellas obtenidas y botón flotante "¡Jugar!".
+  - [x] `ChallengeView`: Formulario de pregunta de verbo con 3 inputs de texto, soporte de tecla `Enter` secuencial, vidas/corazones ❤️ y barra de progreso.
+  - [x] Componente de feedback temporalizado ante error (3-4 segundos de solución visible con cuenta atrás animada y botón "Continuar").
+  - [x] Pantallas de Victoria (cálculo de estrellas) y Derrota (mascota amigable con opción de reintentar desafío regenerado).
 
-### Fase 3: Persistencia, Estadísticas y Gestión de Datos
+### [✓] Fase 3: Persistencia, Estadísticas y Gestión de Datos
 - **Objetivo:** Gestionar el almacenamiento local resiliente, visualización de estadísticas y portabilidad de datos.
 - **Entregables:**
-  - `LocalStorageAdapter`: Gestor de `localStorage` con `schemaVersion: 1`, saneamiento de datos y fallback ante datos corruptos.
-  - `StatsView`: Pantalla de estadísticas con tiempo jugado, precisión global, racha de días, mini-heatmap de actividad, ranking de verbos más fallados y verbos dominados.
-  - `SettingsView`: Preferencias de sonido, botones de exportación JSON (`irregular-verbs-backup.json`), importación con validación de schema y reinicio de progreso con confirmación.
+  - [x] `LocalStorageAdapter`: Gestor de `localStorage` con `schemaVersion: 1`, saneamiento de datos y fallback ante datos corruptos.
+  - [x] `StatsView`: Pantalla de estadísticas con tiempo jugado, precisión global, racha de días, mini-heatmap de actividad, ranking de verbos más fallados y verbos dominados.
+  - [x] `SettingsView`: Preferencias de sonido, botones de exportación JSON (`irregular-verbs-backup.json`), importación con validación de schema y reinicio de progreso con confirmación.
 
-### Fase 4: PWA Offline y Pipeline de Despliegue
+### [✓] Fase 4: PWA Offline y Pipeline de Despliegue
 - **Objetivo:** Garantizar la instalación como PWA offline y automatizar el despliegue en GitHub Pages.
 - **Entregables:**
-  - Integración de `vite-plugin-pwa` con manifiesto Web App, iconos maskable y Service Worker con Workbox.
-  - Precacheo de todos los assets estáticos, HTML, CSS, JS, JSON de verbos y fuentes WOFF2 locales.
-  - Configuración de `base` relativo en Vite para compatibilidad con el subpath de GitHub Pages.
-  - Workflow de GitHub Actions (`.github/workflows/deploy.yml`) con ejecución automática de tests, build y despliegue a GitHub Pages.
+  - [x] Integración de `vite-plugin-pwa` con manifiesto Web App, iconos maskable y Service Worker con Workbox.
+  - [x] Precacheo de todos los assets estáticos, HTML, CSS, JS, JSON de verbos y fuentes WOFF2 locales.
+  - [x] Configuración de `base` relativo en Vite para compatibilidad con el subpath de GitHub Pages.
+  - [x] Workflow de GitHub Actions (`.github/workflows/deploy.yml`) con ejecución automática de tests, build y despliegue a GitHub Pages.
 
-### Fase 5: Audio, Accesibilidad y Pulido Final
+### [✓] Fase 5: Audio, Accesibilidad y Pulido Final
 - **Objetivo:** Elevar la experiencia del usuario con sonido sintetizado, animaciones accesibles y pulido visual.
 - **Entregables:**
-  - `AudioService`: Sintetizador de audio ligero vía Web Audio API para efectos de acierto, error y victoria con interruptor de silencio.
-  - Efectos visuales de confeti con `canvas-confetti`.
-  - Soporte riguroso para `prefers-reduced-motion` y modo de alto contraste WCAG AA.
-  - Atributos móviles en inputs (`autocapitalize="off"`, `autocorrect="off"`, `spellcheck="false"`, `autocomplete="off"`).
-  - README completo con instrucciones de instalación, testing, despliegue y guía para contribuir verbos.
+  - [x] `AudioService`: Sintetizador de audio ligero vía Web Audio API para efectos de acierto, error y victoria con interruptor de silencio.
+  - [x] Efectos visuales de confeti con `canvas-confetti`.
+  - [x] Soporte riguroso para `prefers-reduced-motion` y modo de alto contraste WCAG AA.
+  - [x] Atributos móviles en inputs (`autocapitalize="off"`, `autocorrect="off"`, `spellcheck="false"`, `autocomplete="off"`).
+  - [x] README completo con instrucciones de instalación, testing, despliegue y guía para contribuir verbos.
 
 ---
 
