@@ -5,6 +5,7 @@ import {
   createChallengeConfig,
   initChallengeState,
   submitAnswer,
+  pickGivenField,
   dismissErrorFeedback,
   calculateStars,
   applyChallengeVictoryToProgress,
@@ -12,17 +13,20 @@ import {
 } from './challengeEngine';
 import { parseVerbsList } from '../parser/verbParser';
 import verbsData from '../../data/verbs.json';
-import { AppProgress } from '../types';
+import { AppProgress, VERB_FIELDS } from '../types';
 
 describe('challengeEngine', () => {
   const allVerbs = parseVerbsList(verbsData);
+  const WRONG = { spanish: 'wrong', present: 'wrong', past: 'wrong', participle: 'wrong' };
 
   function getCorrectAnswer(verb: {
+    spanishField: { options: string[] };
     present: { options: string[] };
     past: { options: string[] };
     participle: { options: string[] };
   }) {
     return {
+      spanish: verb.spanishField.options.join(', '),
       present: verb.present.options.join(', '),
       past: verb.past.options.join(', '),
       participle: verb.participle.options.join(', '),
@@ -69,6 +73,70 @@ describe('challengeEngine', () => {
     });
   });
 
+  describe('Campo mostrado al azar', () => {
+    it('pickGivenField devuelve cada uno de los cuatro campos según el azar', () => {
+      expect(pickGivenField(() => 0)).toBe('spanish');
+      expect(pickGivenField(() => 0.3)).toBe('present');
+      expect(pickGivenField(() => 0.6)).toBe('past');
+      expect(pickGivenField(() => 0.99)).toBe('participle');
+      expect(pickGivenField(() => 1)).toBe('participle');
+    });
+
+    it('no elige como pista un campo sin valor (participio de "can")', () => {
+      const can = parseVerbsList([
+        { spanish: 'poder', present: 'can', past: 'could', participle: '' },
+      ])[0];
+      for (const r of [0, 0.3, 0.6, 0.99, 1]) {
+        expect(pickGivenField(() => r, can)).not.toBe('participle');
+      }
+    });
+
+    it('cada pregunta recibe un campo mostrado válido y se usan varios campos distintos', () => {
+      const config = createChallengeConfig(allVerbs, 2, 3);
+      let state = initChallengeState(config);
+      const seen = new Set<string>();
+      seen.add(state.currentGivenField);
+      state.queue.forEach((item) => seen.add(item.givenField));
+      seen.forEach((f) => expect(VERB_FIELDS).toContain(f));
+
+      const seq = [0, 0.3, 0.6, 0.9, 0, 0.3, 0.6, 0.9, 0, 0.3];
+      let i = 0;
+      state = initChallengeState(config, () => seq[i++ % seq.length]);
+      expect(state.currentGivenField).toBe('spanish');
+      expect(state.queue[0].givenField).toBe('present');
+      expect(state.queue[1].givenField).toBe('past');
+      expect(state.queue[2].givenField).toBe('participle');
+    });
+
+    it('el campo mostrado no hay que rellenarlo y el resto sí', () => {
+      const config = createChallengeConfig(allVerbs, 1, 0);
+      for (const given of VERB_FIELDS) {
+        const state = initChallengeState(config, () => VERB_FIELDS.indexOf(given) / 4);
+        expect(state.currentGivenField).toBe(given);
+        const answer: Record<string, string> = { ...getCorrectAnswer(state.currentVerb!) };
+        answer[given] = '';
+        const ok = submitAnswer(state, answer);
+        expect(ok.lastValidationResult?.isValid).toBe(true);
+
+        // Dejar en blanco otro campo solicitado provoca fallo
+        const other = VERB_FIELDS.find((f) => f !== given)!;
+        const bad = { ...getCorrectAnswer(state.currentVerb!), [other]: '' };
+        const failed = submitAnswer(state, bad);
+        expect(failed.lastValidationResult?.isValid).toBe(false);
+        expect(failed.lastValidationResult?.[other].isValid).toBe(false);
+      }
+    });
+
+    it('al fallar, el verbo se re-encola con un campo mostrado asignado', () => {
+      const config = createChallengeConfig(allVerbs, 1, 0);
+      let state = initChallengeState(config, () => 0);
+      state = submitAnswer(state, { spanish: 'x', present: 'x', past: 'x', participle: 'x' }, () => 0.99);
+      const retry = state.queue[state.queue.length - 1];
+      expect(retry.isRetry).toBe(true);
+      expect(retry.givenField).toBe('participle');
+    });
+  });
+
   describe('Flujo de preguntas, re-encolado y límites de fallo', () => {
     it('en desafío 1 (máx 2 fallos), fallar 3 veces el mismo verbo provoca derrota', () => {
       const config = createChallengeConfig(allVerbs, 1, 0);
@@ -79,7 +147,7 @@ describe('challengeEngine', () => {
       expect(state.errorsCommitted).toBe(0);
 
       // Fallo 1
-      state = submitAnswer(state, { present: 'wrong', past: 'wrong', participle: 'wrong' });
+      state = submitAnswer(state, WRONG);
       expect(state.status).toBe('feedback_error');
       expect(state.errorsCommitted).toBe(1);
       expect(state.heartsRemaining).toBe(2);
@@ -98,7 +166,7 @@ describe('challengeEngine', () => {
       expect(state.currentIsRetry).toBe(true);
 
       // Fallo 2 en el mismo verbo
-      state = submitAnswer(state, { present: 'wrong', past: 'wrong', participle: 'wrong' });
+      state = submitAnswer(state, WRONG);
       expect(state.status).toBe('feedback_error');
       expect(state.errorsCommitted).toBe(2);
       expect(state.heartsRemaining).toBe(1);
@@ -106,7 +174,7 @@ describe('challengeEngine', () => {
       state = dismissErrorFeedback(state);
 
       // Fallo 3 en el mismo verbo -> Derrota inmediata (supera máx 2 fallos)
-      state = submitAnswer(state, { present: 'wrong', past: 'wrong', participle: 'wrong' });
+      state = submitAnswer(state, WRONG);
       expect(state.status).toBe('defeat');
       expect(state.errorsCommitted).toBe(3);
       expect(state.heartsRemaining).toBe(0);
@@ -116,7 +184,7 @@ describe('challengeEngine', () => {
       const config = createChallengeConfig(allVerbs, 1, 2);
       let state = initChallengeState(config);
 
-      state = submitAnswer(state, { present: 'wrong', past: 'wrong', participle: 'wrong' });
+      state = submitAnswer(state, WRONG);
       expect(state.status).toBe('defeat');
       expect(state.errorsCommitted).toBe(1);
     });

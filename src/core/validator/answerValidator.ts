@@ -1,15 +1,24 @@
-import { ParsedField, ParsedVerb, FieldValidationResult, VerbValidationResult } from '../types';
+import {
+  ParsedField,
+  ParsedVerb,
+  FieldValidationResult,
+  VerbValidationResult,
+  VerbField,
+  VERB_FIELDS,
+} from '../types';
 
 /**
  * Normaliza la respuesta del usuario:
  * - Convierte a minúsculas
  * - Elimina espacios en blanco iniciales y finales (trim)
  * - Colapsa múltiples espacios intermedios en uno solo
+ * - Elimina acentos y diacríticos (para aceptar "oir" por "oír")
  * - Elimina el prefijo "to " si existe al inicio
  */
 export function normalizeInput(input: string): string {
   if (typeof input !== 'string') return '';
   let normalized = input.trim().toLowerCase();
+  normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   normalized = normalized.replace(/\s+/g, ' ');
 
   if (normalized.startsWith('to ')) {
@@ -22,12 +31,23 @@ export function normalizeInput(input: string): string {
 /**
  * Extrae tokens de respuesta admitiendo separadores válidos (coma, punto y coma, barra, punto, espacio).
  */
-export function extractTokens(normalizedInput: string): string[] {
+export function extractTokens(normalizedInput: string, knownOptions: string[] = []): string[] {
   if (!normalizedInput) return [];
-  return normalizedInput
-    .split(/[,;/.\s]+/)
-    .map((t) => t.trim())
-    .filter((t) => t.length > 0);
+  const tokens: string[] = [];
+  const segments = normalizedInput
+    .split(/[,;/.]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+
+  for (const segment of segments) {
+    // Las opciones de varias palabras (p. ej. "llegar a ser") se conservan enteras
+    if (knownOptions.includes(segment)) {
+      tokens.push(segment);
+    } else {
+      tokens.push(...segment.split(/\s+/).filter((t) => t.length > 0));
+    }
+  }
+  return tokens;
 }
 
 /**
@@ -35,8 +55,18 @@ export function extractTokens(normalizedInput: string): string[] {
  */
 export function validateField(rawUserInput: string, expectedField: ParsedField): FieldValidationResult {
   const normInput = normalizeInput(rawUserInput);
-  const tokens = extractTokens(normInput);
   const expectedNormOptions = expectedField.options.map((opt) => normalizeInput(opt));
+  const tokens = extractTokens(normInput, expectedNormOptions);
+
+  // Campo sin forma válida (p. ej. participio de "can"): solo se acepta la respuesta vacía
+  if (expectedField.options.length === 0) {
+    return {
+      isValid: tokens.length === 0,
+      expected: expectedField.options,
+      operator: expectedField.operator,
+      userInput: rawUserInput,
+    };
+  }
 
   if (tokens.length === 0) {
     return {
@@ -99,23 +129,44 @@ export function validateField(rawUserInput: string, expectedField: ParsedField):
 }
 
 /**
- * Valida los 3 campos de un verbo en un desafío.
- * Un verbo se considera acertado SOLO si los 3 campos son válidos.
+ * Valida los campos de un verbo en un desafío.
+ * El campo mostrado al usuario (`givenField`) se da por válido; los otros tres deben rellenarse.
+ * Un verbo se considera acertado SOLO si los tres campos solicitados son válidos.
  */
 export function validateVerb(
-  userInput: { present: string; past: string; participle: string },
-  verb: ParsedVerb
+  userInput: { spanish?: string; present?: string; past?: string; participle?: string },
+  verb: ParsedVerb,
+  givenField: VerbField = 'spanish'
 ): VerbValidationResult {
-  const present = validateField(userInput.present, verb.present);
-  const past = validateField(userInput.past, verb.past);
-  const participle = validateField(userInput.participle, verb.participle);
+  const specs: Record<VerbField, ParsedField> = {
+    spanish: verb.spanishField,
+    present: verb.present,
+    past: verb.past,
+    participle: verb.participle,
+  };
 
-  const isValid = present.isValid && past.isValid && participle.isValid;
+  const results = {} as Record<VerbField, FieldValidationResult>;
+  for (const field of VERB_FIELDS) {
+    if (field === givenField) {
+      results[field] = {
+        isValid: true,
+        expected: specs[field].options,
+        operator: specs[field].operator,
+        userInput: '',
+      };
+    } else {
+      results[field] = validateField(userInput[field] ?? '', specs[field]);
+    }
+  }
+
+  const isValid = VERB_FIELDS.every((field) => results[field].isValid);
 
   return {
     isValid,
-    present,
-    past,
-    participle,
+    givenField,
+    spanish: results.spanish,
+    present: results.present,
+    past: results.past,
+    participle: results.participle,
   };
 }

@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   ParsedVerb,
   ChallengeState,
+  VerbField,
+  VERB_FIELDS,
   VerbStatsEntry,
 } from '../core/types';
 import {
@@ -18,6 +20,32 @@ import { StarRating } from '../components/ui/StarRating';
 import { Mascot } from '../components/ui/Mascot';
 import { triggerVictoryConfetti } from '../components/ui/Confetti';
 import { audioService } from '../services/audioService';
+
+const FIELD_LABELS: Record<VerbField, { given: string; asked: string; placeholder: string }> = {
+  spanish: { given: 'Verbo en Español', asked: 'Español', placeholder: 'ej. ser / estar' },
+  present: {
+    given: 'Infinitive / Present',
+    asked: 'Infinitive / Present',
+    placeholder: 'ej. be / is, are',
+  },
+  past: { given: 'Past Simple', asked: 'Past Simple', placeholder: 'ej. was, were' },
+  participle: {
+    given: 'Past Participle',
+    asked: 'Past Participle',
+    placeholder: 'ej. been (vacío si no existe)',
+  },
+};
+
+const EMPTY_INPUTS: Record<VerbField, string> = {
+  spanish: '',
+  present: '',
+  past: '',
+  participle: '',
+};
+
+function getGivenText(verb: ParsedVerb, field: VerbField): string {
+  return field === 'spanish' ? verb.spanish : verb[field].options.join(' / ');
+}
 
 interface ChallengeViewProps {
   levelNumber: number;
@@ -49,26 +77,24 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
     return initChallengeState(config);
   });
 
-  const [inputPresent, setInputPresent] = useState('');
-  const [inputPast, setInputPast] = useState('');
-  const [inputParticiple, setInputParticiple] = useState('');
+  const [inputs, setInputs] = useState<Record<VerbField, string>>(EMPTY_INPUTS);
 
-  const presentInputRef = useRef<HTMLInputElement | null>(null);
-  const pastInputRef = useRef<HTMLInputElement | null>(null);
-  const participleInputRef = useRef<HTMLInputElement | null>(null);
+  const inputRefs = useRef<Partial<Record<VerbField, HTMLInputElement | null>>>({});
+
+  const givenField = challengeState.currentGivenField;
+  const askedFields = VERB_FIELDS.filter((f) => f !== givenField);
 
   const resetInputs = () => {
-    setInputPresent('');
-    setInputPast('');
-    setInputParticiple('');
+    setInputs(EMPTY_INPUTS);
   };
 
-  // Auto focus al primer input disponible
+  // Auto focus al primer input solicitado
   useEffect(() => {
     if (challengeState.status === 'playing') {
-      presentInputRef.current?.focus();
+      const first = VERB_FIELDS.find((f) => f !== challengeState.currentGivenField);
+      if (first) inputRefs.current[first]?.focus();
     }
-  }, [challengeState.currentVerb, challengeState.status]);
+  }, [challengeState.currentVerb, challengeState.currentGivenField, challengeState.status]);
 
   // Manejo de sonido y confetti ante victoria o derrota
   useEffect(() => {
@@ -97,11 +123,7 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
     if (!challengeState.currentVerb || challengeState.status !== 'playing') return;
 
     const verb = challengeState.currentVerb;
-    const nextState = submitAnswer(challengeState, {
-      present: inputPresent,
-      past: inputPast,
-      participle: inputParticiple,
-    });
+    const nextState = submitAnswer(challengeState, inputs);
 
     const isCorrect = nextState.lastValidationResult?.isValid || false;
     onVerbAnswer(verb.index, isCorrect);
@@ -260,131 +282,70 @@ export const ChallengeView: React.FC<ChallengeViewProps> = ({
             </div>
           )}
 
-          {/* Verbo en español */}
+          {/* Campo mostrado (elegido al azar) */}
           <div className="mb-6">
             <span className="text-xs font-bold text-indigo-500 uppercase tracking-wider block mb-1">
-              Verbo en Español
+              {FIELD_LABELS[givenField].given}
             </span>
             <p className="text-3xl md:text-4xl font-fun font-extrabold text-slate-800 drop-shadow-sm">
-              {currentVerb?.spanish}
+              {currentVerb ? getGivenText(currentVerb, givenField) : ''}
             </p>
           </div>
 
-          {/* Formulario de 3 inputs */}
+          {/* Formulario con los 3 campos restantes */}
           <div className="space-y-4 mb-6 text-left">
-            {/* Input 1: Present */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">
-                1. Infinitive / Present:
-              </label>
-              <input
-                ref={presentInputRef}
-                type="text"
-                disabled={isErrorFeedback}
-                value={inputPresent}
-                onChange={(e) => setInputPresent(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    pastInputRef.current?.focus();
-                  }
-                }}
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-                autoComplete="off"
-                placeholder="ej. be / is, are"
-                className={`w-full px-4 py-3 rounded-2xl font-fun text-lg border-2 transition-all outline-none ${
-                  isErrorFeedback
-                    ? lastValidation?.present.isValid
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-                      : 'border-rose-500 bg-rose-50 text-rose-900'
-                    : 'border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
-                }`}
-              />
-              {isErrorFeedback && !lastValidation?.present.isValid && (
-                <p className="text-xs font-bold text-rose-600 mt-1">
-                  Correcto:{' '}
-                  <span className="font-mono">{currentVerb?.present.options.join(' / ')}</span>
-                </p>
-              )}
-            </div>
-
-            {/* Input 2: Past Simple */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">
-                2. Past Simple:
-              </label>
-              <input
-                ref={pastInputRef}
-                type="text"
-                disabled={isErrorFeedback}
-                value={inputPast}
-                onChange={(e) => setInputPast(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    participleInputRef.current?.focus();
-                  }
-                }}
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-                autoComplete="off"
-                placeholder="ej. was, were"
-                className={`w-full px-4 py-3 rounded-2xl font-fun text-lg border-2 transition-all outline-none ${
-                  isErrorFeedback
-                    ? lastValidation?.past.isValid
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-                      : 'border-rose-500 bg-rose-50 text-rose-900'
-                    : 'border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
-                }`}
-              />
-              {isErrorFeedback && !lastValidation?.past.isValid && (
-                <p className="text-xs font-bold text-rose-600 mt-1">
-                  Correcto:{' '}
-                  <span className="font-mono">{currentVerb?.past.options.join(' / ')}</span>
-                </p>
-              )}
-            </div>
-
-            {/* Input 3: Past Participle */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">
-                3. Past Participle:
-              </label>
-              <input
-                ref={participleInputRef}
-                type="text"
-                disabled={isErrorFeedback}
-                value={inputParticiple}
-                onChange={(e) => setInputParticiple(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleCheckAnswer();
-                  }
-                }}
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-                autoComplete="off"
-                placeholder="ej. been"
-                className={`w-full px-4 py-3 rounded-2xl font-fun text-lg border-2 transition-all outline-none ${
-                  isErrorFeedback
-                    ? lastValidation?.participle.isValid
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
-                      : 'border-rose-500 bg-rose-50 text-rose-900'
-                    : 'border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
-                }`}
-              />
-              {isErrorFeedback && !lastValidation?.participle.isValid && (
-                <p className="text-xs font-bold text-rose-600 mt-1">
-                  Correcto:{' '}
-                  <span className="font-mono">{currentVerb?.participle.options.join(' / ')}</span>
-                </p>
-              )}
-            </div>
+            {askedFields.map((field, i) => {
+              const isLast = i === askedFields.length - 1;
+              const fieldResult = lastValidation?.[field];
+              return (
+                <div key={field}>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
+                    {i + 1}. {FIELD_LABELS[field].asked}:
+                  </label>
+                  <input
+                    ref={(el) => {
+                      inputRefs.current[field] = el;
+                    }}
+                    type="text"
+                    disabled={isErrorFeedback}
+                    value={inputs[field]}
+                    onChange={(e) => setInputs((prev) => ({ ...prev, [field]: e.target.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (isLast) {
+                          handleCheckAnswer();
+                        } else {
+                          inputRefs.current[askedFields[i + 1]]?.focus();
+                        }
+                      }
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck="false"
+                    autoComplete="off"
+                    placeholder={FIELD_LABELS[field].placeholder}
+                    className={`w-full px-4 py-3 rounded-2xl font-fun text-lg border-2 transition-all outline-none ${
+                      isErrorFeedback
+                        ? fieldResult?.isValid
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                          : 'border-rose-500 bg-rose-50 text-rose-900'
+                        : 'border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100'
+                    }`}
+                  />
+                  {isErrorFeedback && !fieldResult?.isValid && (
+                    <p className="text-xs font-bold text-rose-600 mt-1">
+                      Correcto:{' '}
+                      <span className="font-mono">
+                        {fieldResult && fieldResult.expected.length > 0
+                          ? fieldResult.expected.join(' / ')
+                          : '— (sin forma, déjalo vacío)'}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Acciones: Comprobar o Barra de Feedback */}

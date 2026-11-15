@@ -3,9 +3,22 @@ import { RawVerb, ParsedField, ParsedVerb } from '../types';
 /**
  * Parsea un campo individual de conjugación verbal validando que no se mezclen los operadores '&' y '|'.
  */
-export function parseField(fieldStr: string, verbIndex = 0, fieldName = 'unknown'): ParsedField {
-  if (typeof fieldStr !== 'string' || fieldStr.trim() === '') {
+export function parseField(
+  fieldStr: string,
+  verbIndex = 0,
+  fieldName = 'unknown',
+  allowEmpty = false
+): ParsedField {
+  if (typeof fieldStr !== 'string' || (fieldStr.trim() === '' && !allowEmpty)) {
     throw new Error(`Campo '${fieldName}' vacío o inválido en el verbo #${verbIndex}`);
+  }
+
+  // Campo sin valor válido (p. ej. el verbo "can" no tiene participio): la respuesta correcta es vacía
+  if (fieldStr.trim() === '') {
+    return {
+      operator: 'SINGLE',
+      options: [],
+    };
   }
 
   const hasAnd = fieldStr.includes('&');
@@ -60,7 +73,8 @@ export function formatSpanish(spanishStr: string): string {
  * Parsea y valida un verbo crudo del dataset.
  */
 export function parseVerb(raw: RawVerb, index: number): ParsedVerb {
-  if (!raw.spanish || !raw.present || !raw.past || !raw.participle) {
+  // El participio puede estar vacío (verbos defectivos como "can"), pero debe estar definido
+  if (!raw.spanish || !raw.present || !raw.past || typeof raw.participle !== 'string') {
     throw new Error(`Estructura incompleta en el verbo #${index}`);
   }
 
@@ -68,9 +82,10 @@ export function parseVerb(raw: RawVerb, index: number): ParsedVerb {
     index,
     spanish: formatSpanish(raw.spanish),
     rawSpanish: raw.spanish,
+    spanishField: parseField(raw.spanish, index, 'spanish'),
     present: parseField(raw.present, index, 'present'),
     past: parseField(raw.past, index, 'past'),
-    participle: parseField(raw.participle, index, 'participle'),
+    participle: parseField(raw.participle, index, 'participle', true),
     raw,
   };
 }

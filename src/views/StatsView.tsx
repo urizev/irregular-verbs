@@ -189,7 +189,7 @@ export const StatsView: React.FC<StatsViewProps> = ({
                     </span>
                     <span className="text-xs text-slate-500 block">
                       {item.verb.present.options[0]} • {item.verb.past.options[0]} •{' '}
-                      {item.verb.participle.options[0]}
+                      {item.verb.participle.options[0] ?? '—'}
                     </span>
                   </div>
 

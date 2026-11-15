@@ -3,6 +3,8 @@ import {
   ChallengeConfig,
   ChallengeState,
   ChallengeItem,
+  VerbField,
+  VERB_FIELDS,
   VerbStatsEntry,
   AppProgress,
   AppStatistics,
@@ -78,12 +80,28 @@ export function createChallengeConfig(
 }
 
 /**
+ * Elige al azar cuál de los cuatro campos (español, present, past, participle) se muestra al usuario.
+ * Si se indica el verbo, se excluyen los campos sin valor (p. ej. el participio de "can").
+ */
+export function pickGivenField(rng: () => number = Math.random, verb?: ParsedVerb): VerbField {
+  const candidates = verb
+    ? VERB_FIELDS.filter((f) => f === 'spanish' || verb[f].options.length > 0)
+    : VERB_FIELDS;
+  const idx = Math.min(candidates.length - 1, Math.floor(rng() * candidates.length));
+  return candidates[idx];
+}
+
+/**
  * Inicializa el estado de ejecución de un desafío.
  */
-export function initChallengeState(config: ChallengeConfig): ChallengeState {
+export function initChallengeState(
+  config: ChallengeConfig,
+  rng: () => number = Math.random
+): ChallengeState {
   const queue: ChallengeItem[] = config.verbs.map((verb) => ({
     verb,
     isRetry: false,
+    givenField: pickGivenField(rng, verb),
   }));
 
   const firstItem = queue[0] || null;
@@ -96,6 +114,7 @@ export function initChallengeState(config: ChallengeConfig): ChallengeState {
     heartsRemaining: config.maxAllowedErrors + 1,
     status: firstItem ? 'playing' : 'victory',
     currentVerb: firstItem ? firstItem.verb : null,
+    currentGivenField: firstItem ? firstItem.givenField : 'spanish',
     currentIsRetry: firstItem ? firstItem.isRetry : false,
     queue: queue.slice(1),
     totalInitialQuestions: config.verbs.length,
@@ -122,14 +141,15 @@ export function calculateStars(errorsCommitted: number): number {
  */
 export function submitAnswer(
   currentState: ChallengeState,
-  userInput: { present: string; past: string; participle: string }
+  userInput: { spanish?: string; present?: string; past?: string; participle?: string },
+  rng: () => number = Math.random
 ): ChallengeState {
   if (currentState.status !== 'playing' || !currentState.currentVerb) {
     return currentState;
   }
 
   const currentVerb = currentState.currentVerb;
-  const validationResult = validateVerb(userInput, currentVerb);
+  const validationResult = validateVerb(userInput, currentVerb, currentState.currentGivenField);
 
   if (validationResult.isValid) {
     // Acierto: el verbo se da por superado
@@ -156,6 +176,7 @@ export function submitAnswer(
     return {
       ...currentState,
       currentVerb: nextItem.verb,
+      currentGivenField: nextItem.givenField,
       currentIsRetry: nextItem.isRetry,
       queue: nextQueue,
       completedQuestionsCount: completedCount,
@@ -182,7 +203,7 @@ export function submitAnswer(
   // Re-encolar al final de la cola para volver a preguntarlo
   const nextQueue = [
     ...currentState.queue,
-    { verb: currentVerb, isRetry: true },
+    { verb: currentVerb, isRetry: true, givenField: pickGivenField(rng, currentVerb) },
   ];
 
   return {
@@ -224,6 +245,7 @@ export function dismissErrorFeedback(currentState: ChallengeState): ChallengeSta
     ...currentState,
     status: 'playing',
     currentVerb: nextItem.verb,
+    currentGivenField: nextItem.givenField,
     currentIsRetry: nextItem.isRetry,
     queue: nextQueue,
     lastValidationResult: null,

@@ -64,6 +64,31 @@ describe('answerValidator', () => {
     });
   });
 
+  describe('participio vacío (verbo "can")', () => {
+    const verbCan = parseVerb(
+      { spanish: 'poder', present: 'can', past: 'could', participle: '' },
+      1
+    );
+
+    it('acepta la respuesta vacía como correcta', () => {
+      expect(validateField('', verbCan.participle).isValid).toBe(true);
+      expect(validateField('   ', verbCan.participle).isValid).toBe(true);
+      const result = validateVerb({ spanish: 'poder', past: 'could' }, verbCan, 'present');
+      expect(result.isValid).toBe(true);
+      expect(result.participle.isValid).toBe(true);
+    });
+
+    it('rechaza cualquier texto en un participio inexistente', () => {
+      expect(validateField('been', verbCan.participle).isValid).toBe(false);
+      const result = validateVerb(
+        { spanish: 'poder', past: 'could', participle: 'been' },
+        verbCan,
+        'present'
+      );
+      expect(result.isValid).toBe(false);
+    });
+  });
+
   describe('validateVerb (3 campos simultáneos)', () => {
     const verbBe = parseVerb(
       { spanish: 'ser&estar', present: 'is&are', past: 'was&were', participle: 'been' },

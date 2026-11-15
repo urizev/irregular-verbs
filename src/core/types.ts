@@ -10,10 +10,15 @@ export interface ParsedField {
   options: string[];
 }
 
+export type VerbField = 'spanish' | 'present' | 'past' | 'participle';
+
+export const VERB_FIELDS: readonly VerbField[] = ['spanish', 'present', 'past', 'participle'];
+
 export interface ParsedVerb {
   index: number;
   spanish: string; // Formatted for display (e.g., "ser / estar")
   rawSpanish: string;
+  spanishField: ParsedField;
   present: ParsedField;
   past: ParsedField;
   participle: ParsedField;
@@ -30,6 +35,8 @@ export interface FieldValidationResult {
 
 export interface VerbValidationResult {
   isValid: boolean;
+  givenField: VerbField;
+  spanish: FieldValidationResult;
   present: FieldValidationResult;
   past: FieldValidationResult;
   participle: FieldValidationResult;
@@ -47,6 +54,7 @@ export interface ChallengeConfig {
 export interface ChallengeItem {
   verb: ParsedVerb;
   isRetry: boolean;
+  givenField: VerbField; // Campo que se muestra al usuario; el resto debe rellenarlo
 }
 
 export type ChallengeStatus = 'idle' | 'playing' | 'feedback_error' | 'victory' | 'defeat';
@@ -59,6 +67,7 @@ export interface ChallengeState {
   heartsRemaining: number;
   status: ChallengeStatus;
   currentVerb: ParsedVerb | null;
+  currentGivenField: VerbField;
   currentIsRetry: boolean;
   queue: ChallengeItem[];
   totalInitialQuestions: number;
